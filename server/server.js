@@ -39,14 +39,37 @@ app.use(generalLimiter);
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (origin.includes('localhost') || origin.includes('vercel.app') || origin.includes('techsphere')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+
+    // Allow all localhost origins for development
+    if (origin.includes('localhost')) {
+      return callback(null, true);
     }
+
+    // Allow Vercel deployments and techsphere domains
+    if (origin.includes('vercel.app') || origin.includes('techsphere')) {
+      return callback(null, true);
+    }
+
+    // In production, be more restrictive
+    if (process.env.NODE_ENV === 'production') {
+      // Add your specific production domains here
+      const allowedOrigins = [
+        'https://techsphere-frontend-eight.vercel.app',
+        'https://techsphere-jqsl.onrender.com' // your backend domain
+      ];
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+    }
+
+    console.log('CORS blocked origin:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
 }));
 
 app.use(express.json());
