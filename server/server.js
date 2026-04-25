@@ -39,7 +39,7 @@ app.use(generalLimiter);
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://your-production-domain.com', 'https://your-app.vercel.app']
+    ? [process.env.FRONTEND_URL || 'https://techsphere-frontend.vercel.app']
     : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'],
   credentials: true,
 }));
@@ -125,13 +125,22 @@ app.use(errorHandler);
 // ─── MongoDB Connection & Server Start ────────────────────────────────────────
 const startServer = async () => {
   try {
-    // Use in-memory MongoDB for local testing
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    const mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    await mongoose.connect(mongoUri);
-    console.log('✅  In-memory MongoDB started for testing');
-    console.log('⚠️   Data will be lost when server stops');
+    if (process.env.NODE_ENV === 'production') {
+      // Use real MongoDB in production
+      if (!process.env.MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is required in production');
+      }
+      await mongoose.connect(process.env.MONGODB_URI);
+      logger.info('✅ Connected to MongoDB');
+    } else {
+      // Use in-memory MongoDB for local development/testing
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongoServer = await MongoMemoryServer.create();
+      const mongoUri = mongoServer.getUri();
+      await mongoose.connect(mongoUri);
+      console.log('✅  In-memory MongoDB started for testing');
+      console.log('⚠️   Data will be lost when server stops');
+    }
 
     app.listen(PORT, () => {
       logger.info(`🚀 TechSphere API running on http://localhost:${PORT}`);

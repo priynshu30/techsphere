@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function() { return !this.googleId; },
       minlength: 6,
       select: false, // Never return by default
     },
@@ -33,12 +33,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true
-    },
-    passwordHash: {
-      type: String,
-      required: function() { return !this.googleId; },
-      minlength: 6,
-      select: false, // Never return by default
     },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: false } }
