@@ -30,50 +30,16 @@ const PORT = process.env.PORT || 5000;
 
 // ─── CORS Configuration (must be applied before other middleware) ──────────
 app.use(cors({
-  origin: function (origin, callback) {
-    console.log('CORS check for origin:', origin);
-
-    // Allow requests with no origin (like mobile apps, Postman, etc.)
-    if (!origin) {
-      console.log('CORS: Allowing request with no origin');
-      return callback(null, true);
-    }
-
-    // Define allowed origins
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:3000',
-      'https://techsphere-frontend-eight.vercel.app'
-    ];
-
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      console.log('CORS: Allowing origin from allowed list:', origin);
-      return callback(null, true);
-    }
-
-    // Allow any vercel.app subdomain
-    if (origin && origin.match(/\.vercel\.app$/)) {
-      console.log('CORS: Allowing vercel.app origin:', origin);
-      return callback(null, true);
-    }
-
-    // Allow any techsphere subdomain
-    if (origin && origin.includes('techsphere')) {
-      console.log('CORS: Allowing techsphere origin:', origin);
-      return callback(null, true);
-    }
-
-    // Log blocked origins for debugging
-    console.log('CORS blocked origin:', origin);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: [
+    'https://techsphere-frontend-eight.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.options('*', cors());
 
 // Rate limiting setup
 const generalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
