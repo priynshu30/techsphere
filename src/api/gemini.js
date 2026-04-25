@@ -1,10 +1,5 @@
 import axios from 'axios';
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-// Using gemini-1.5-flash (gemini-pro is deprecated in v1beta)
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
 const SYSTEM_PROMPT = `You are TechSphere's virtual IT support assistant. 
 Your role is to help users resolve technical issues, explain service plans (Basic, Standard, Premium), 
 guide ticket submission, and answer SaaS platform questions. 
@@ -12,15 +7,15 @@ You can help with: password resets, billing, service plans, IT troubleshooting, 
 Be professional, concise, and helpful. Keep responses under 3 sentences unless a detailed explanation is needed.
 When a user mentions a billing issue, outage, or technical problem, offer to create a support ticket for them.`;
 
-/**
- * Sends conversation history to Gemini and returns the assistant's reply.
- * @param {Array<{role: 'user'|'model', text: string}>} messages
- * @returns {Promise<string>} - bot reply text
- */
 export async function getGeminiResponse(messages) {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
-    return "⚠️ Gemini API key not configured. Please add your VITE_GEMINI_API_KEY to the .env file.";
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  
+  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey === 'your_key' || !apiKey.startsWith('AIza')) {
+    console.error("Gemini Error: VITE_GEMINI_API_KEY is missing or invalid.");
+    return "⚠️ Gemini API key not configured or invalid. Please check your .env file.";
   }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
   // Build contents array: system prompt as first user turn, then real history
   const contents = [
@@ -33,14 +28,14 @@ export async function getGeminiResponse(messages) {
       parts: [{ text: "Understood! I'm TechSphere's IT assistant. How can I help you today?" }],
     },
     ...messages.map((msg) => ({
-      role: msg.role, // 'user' | 'model'
+      role: msg.role === 'model' ? 'model' : 'user', 
       parts: [{ text: msg.text }],
     })),
   ];
 
   try {
     const { data } = await axios.post(
-      GEMINI_URL,
+      url,
       {
         contents,
         generationConfig: {
