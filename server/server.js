@@ -18,14 +18,28 @@ const ticketRoutes = require('./routes/tickets');
 
 // Middleware imports
 const { errorHandler } = require('./middleware/errorHandler');
+const logger = require('./utils/logger');
+
+// Production optimization imports
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Rate limiting setup
+const generalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
+const authLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
+
 // ─── Core Middleware ─────────────────────────────────────────────────────────
+app.use(helmet());
+app.use(compression());
+app.use(generalLimiter);
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://your-production-domain.com']
+    ? ['https://your-production-domain.com', 'https://your-app.vercel.app']
     : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'],
   credentials: true,
 }));
@@ -95,7 +109,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/tickets', ticketRoutes);
@@ -120,11 +134,11 @@ const startServer = async () => {
     console.log('⚠️   Data will be lost when server stops');
 
     app.listen(PORT, () => {
-      console.log(`🚀  TechSphere API running on http://localhost:${PORT}`);
-      console.log(`📋  Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`🚀 TechSphere API running on http://localhost:${PORT}`);
+      logger.info(`📋 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (err) {
-    console.error('❌  MongoDB connection failed:', err.message);
+    logger.error('❌ MongoDB connection failed:', err);
     process.exit(1);
   }
 };

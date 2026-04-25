@@ -1,3 +1,5 @@
+const logger = require('../utils/logger');
+
 // Centralized error handler middleware
 // Must be the LAST middleware registered in server.js
 const errorHandler = (err, req, res, next) => {
@@ -38,6 +40,8 @@ const errorHandler = (err, req, res, next) => {
 
   if (process.env.NODE_ENV === 'development') {
     console.error('ERROR STACK:', err.stack);
+  } else {
+    logger.error(`${statusCode} - ${message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
   }
 
   res.status(statusCode).json({
