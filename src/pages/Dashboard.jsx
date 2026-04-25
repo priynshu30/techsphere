@@ -81,7 +81,7 @@ export default function Dashboard() {
       <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Monthly Revenue Comparison</h3>
         <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%" minHeight={288} minWidth={300}>
+          <ResponsiveContainer width="99%" height={288}>
             <BarChart data={mockRevenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 14 }} dy={10} />
