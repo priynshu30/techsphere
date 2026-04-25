@@ -80,9 +80,8 @@ const generalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardH
 const authLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
 
 // ─── Core Middleware ─────────────────────────────────────────────────────────
-// Temporarily disable helmet and compression to test CORS
-// app.use(helmet());
-// app.use(compression());
+app.use(helmet());
+app.use(compression());
 app.use(generalLimiter);
 
 app.use(express.json());
