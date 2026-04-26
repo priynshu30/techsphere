@@ -1,55 +1,18 @@
-import axios from 'axios';
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-const SYSTEM_PROMPT = `You are TechSphere's virtual IT support assistant. 
-Your role is to help users resolve technical issues, explain service plans (Basic, Standard, Premium), 
-guide ticket submission, and answer SaaS platform questions. 
-You can help with: password resets, billing, service plans, IT troubleshooting, and platform navigation.
-Be professional, concise, and helpful. Keep responses under 3 sentences unless a detailed explanation is needed.
-When a user mentions a billing issue, outage, or technical problem, offer to create a support ticket for them.`;
+export async function getGeminiResponse(history) {
+  // The current frontend passes a history array, but the new backend expects a single prompt string.
+  // We'll extract the latest message text to remain compatible.
+  const prompt = Array.isArray(history) ? history[history.length - 1].text : history;
 
-export async function getGeminiResponse(messages) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const response = await fetch(`${BACKEND_URL}/api/ai/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
   
-  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey === 'your_key' || !apiKey.startsWith('AIza')) {
-    console.error("Gemini Error: VITE_GEMINI_API_KEY is missing or invalid.");
-    return "⚠️ Gemini API key not configured or invalid. Please check your .env file.";
-  }
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-  // Build contents array: system prompt as first user turn, then real history
-  const contents = [
-    {
-      role: 'user',
-      parts: [{ text: SYSTEM_PROMPT }],
-    },
-    {
-      role: 'model',
-      parts: [{ text: "Understood! I'm TechSphere's IT assistant. How can I help you today?" }],
-    },
-    ...messages.map((msg) => ({
-      role: msg.role === 'model' ? 'model' : 'user', 
-      parts: [{ text: msg.text }],
-    })),
-  ];
-
-  try {
-    const { data } = await axios.post(
-      url,
-      {
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 512,
-        },
-      },
-      { timeout: 15000 }
-    );
-
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return reply || "I didn't receive a valid response. Please try again.";
-  } catch (err) {
-    console.error('Gemini API error:', err.response?.data || err.message);
-    return "I'm having trouble connecting. Please try again in a moment.";
-  }
+  const data = await response.json();
+  
+  // Extract the text content from the Gemini response to avoid UI crashes.
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble connecting. Please try again in a moment.";
 }

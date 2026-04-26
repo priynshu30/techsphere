@@ -15,6 +15,7 @@ const authRoutes = require('./routes/auth');
 const clientRoutes = require('./routes/clients');
 const serviceRoutes = require('./routes/services');
 const ticketRoutes = require('./routes/tickets');
+const aiRoutes = require('./routes/ai');
 
 // Middleware imports
 const { errorHandler } = require('./middleware/errorHandler');
@@ -120,6 +121,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
