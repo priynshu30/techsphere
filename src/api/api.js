@@ -28,7 +28,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only redirect to login if it's a 401 error AND it's not the login request itself
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+    
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('techsphere_token');
       localStorage.removeItem('techsphere_user');
       window.location.href = '/';

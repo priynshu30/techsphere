@@ -6,30 +6,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Handle preflight OPTIONS requests for auth routes
-router.options('/register', (req, res) => {
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.sendStatus(200);
-});
 
-router.options('/login', (req, res) => {
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.sendStatus(200);
-});
-
-router.options('/profile', (req, res) => {
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.sendStatus(200);
-});
-
-router.options('/forgot-password', (req, res) => {
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.sendStatus(200);
-});
 
 // POST /api/auth/register
 router.post(
@@ -79,7 +56,8 @@ router.get('/google/callback',
       role: req.user.role
     };
     
-    res.redirect(`http://localhost:5175/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`);
   }
 );
 
